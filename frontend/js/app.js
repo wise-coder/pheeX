@@ -617,6 +617,12 @@ const loadNotifications = async () => {
   renderNotifications();
 };
 
+const loadCommunityUsers = async () => {
+  const { users } = await api.getCommunityUsers();
+  state.communityUsers = users.filter((user) => user?._id !== state.user?._id);
+  renderCommunityUsers();
+};
+
 const loadAlbums = async ({ preserveSelection = true } = {}) => {
   const { albums } = await api.getAlbums({
     search: state.search,
@@ -699,7 +705,7 @@ const loadMoreImages = async () => {
 const refreshDashboard = async ({ preserveSelection = true } = {}) => {
   await syncUserFromServer();
   renderProfile();
-  await Promise.all([loadAlbums({ preserveSelection }), loadNotifications()]);
+  await Promise.all([loadAlbums({ preserveSelection }), loadNotifications(), loadCommunityUsers()]);
 
   if (state.selectedAlbum?._id) {
     await loadSelectedAlbum(state.selectedAlbum._id);
