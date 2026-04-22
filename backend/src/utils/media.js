@@ -1,12 +1,11 @@
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
+const mongoose = require("mongoose");
 
-const uploadsDirectory = path.resolve(__dirname, "../uploads");
+const Media = require("../models/Media");
 
-if (!fs.existsSync(uploadsDirectory)) {
-  fs.mkdirSync(uploadsDirectory, { recursive: true });
-}
+const legacyUploadsDirectory = path.resolve(__dirname, "../uploads");
 
 const sanitizeBaseName = (fileName = "image") =>
   path
@@ -41,16 +40,21 @@ const getExtension = (file) => {
 const buildFileName = (file) =>
   `${Date.now()}-${crypto.randomUUID()}-${sanitizeBaseName(file?.originalname)}${getExtension(file)}`;
 
-const uploadToLocalDisk = async (file, folder) => {
-  const fileName = `${folder}-${buildFileName(file)}`;
-  const filePath = path.resolve(uploadsDirectory, fileName);
+const buildMediaUrl = (mediaId) => `/api/media/${mediaId}`;
 
-  await fs.promises.writeFile(filePath, file.buffer);
+const uploadToMongo = async (file, folder) => {
+  const media = await Media.create({
+    kind: folder,
+    fileName: `${folder}-${buildFileName(file)}`,
+    mimeType: file.mimetype || "image/jpeg",
+    size: file.size || file.buffer.length,
+    data: file.buffer
+  });
 
   return {
-    provider: "local",
-    path: fileName,
-    url: `/uploads/${fileName}`
+    provider: "mongodb",
+    path: String(media._id),
+    url: buildMediaUrl(media._id)
   };
 };
 
@@ -61,16 +65,30 @@ const saveUploadedFile = async (file, { folder = "images" } = {}) => {
     throw error;
   }
 
-  return uploadToLocalDisk(file, folder);
+  return uploadToMongo(file, folder);
 };
 
-const deleteLocalUpload = (url = "") => {
+const deleteMongoUpload = async (url = "") => {
+  const match = /^\/api\/media\/([a-f\d]{24})$/i.exec(url);
+
+  if (!match) {
+    return;
+  }
+
+  if (!mongoose.Types.ObjectId.isValid(match[1])) {
+    return;
+  }
+
+  await Media.deleteOne({ _id: match[1] });
+};
+
+const deleteLegacyLocalUpload = (url = "") => {
   if (!url.startsWith("/uploads/")) {
     return;
   }
 
   const fileName = path.basename(url);
-  const filePath = path.resolve(__dirname, "../uploads", fileName);
+  const filePath = path.resolve(legacyUploadsDirectory, fileName);
 
   if (fs.existsSync(filePath)) {
     fs.unlinkSync(filePath);
@@ -79,7 +97,8 @@ const deleteLocalUpload = (url = "") => {
 
 const deleteStoredFile = async (url = "") => {
   try {
-    deleteLocalUpload(url);
+    await deleteMongoUpload(url);
+    deleteLegacyLocalUpload(url);
   } catch (error) {
     console.error(`Failed to remove stored file "${url}":`, error.message);
   }
@@ -88,5 +107,5 @@ const deleteStoredFile = async (url = "") => {
 module.exports = {
   saveUploadedFile,
   deleteStoredFile,
-  deleteLocalUpload
+  buildMediaUrl
 };

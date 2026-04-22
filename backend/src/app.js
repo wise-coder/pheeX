@@ -11,6 +11,7 @@ const imageRoutes = require("./routes/imageRoutes");
 const commentRoutes = require("./routes/commentRoutes");
 const reactionRoutes = require("./routes/reactionRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
+const mediaRoutes = require("./routes/mediaRoutes");
 const notFound = require("./middleware/notFound");
 const errorHandler = require("./middleware/errorHandler");
 
@@ -38,6 +39,7 @@ app.get("/health", (req, res) => {
 });
 
 app.use("/uploads", express.static(uploadsPath));
+app.use("/api/media", mediaRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/albums", albumRoutes);
 app.use("/api/images", imageRoutes);

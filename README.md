@@ -7,7 +7,7 @@ pheeX is a full-stack collaborative photo-sharing platform where users can creat
 - Frontend: HTML, CSS, Bootstrap, vanilla JavaScript
 - Backend: Node.js, Express.js, MongoDB, Mongoose
 - Auth: JWT-based authentication
-- Uploads: `multer` + local disk storage
+- Uploads: `multer` + MongoDB-backed media storage
 
 ## Project Structure
 
@@ -75,7 +75,7 @@ http://localhost:5000
 
 ## Render Deployment
 
-This app uses MongoDB for data and stores uploads on the server filesystem.
+This app uses MongoDB for both application data and uploaded media.
 
 Use these Render settings:
 
@@ -99,8 +99,7 @@ Important:
 - Do not use `mongodb://127.0.0.1:27017/pheex` on Render.
 - URL-encode special characters in your MongoDB password before pasting it into `MONGODB_URI`. Example: `@` becomes `%40`.
 - In MongoDB Atlas, allow your Render service in `Network Access`, or temporarily allow `0.0.0.0/0` while testing.
-- Uploads are stored in `backend/src/uploads/`.
-- On Render, server disk is not durable across redeploys or restarts, so uploaded files can be lost.
+- Uploaded images and profile photos are stored in MongoDB and served through `/api/media/:mediaId`.
 
 ## API Areas
 
@@ -119,10 +118,11 @@ Important:
 - `POST /api/reactions/toggle`
 - `GET /api/notifications`
 - `PUT /api/notifications/read-all`
+- `GET /api/media/:mediaId`
 
 ## Notes
 
 - App data and metadata live in MongoDB.
-- Uploaded files are stored locally in `backend/src/uploads/`.
+- Uploaded images and profile photos are stored in MongoDB.
 - The frontend is framework-free and rendered dynamically with vanilla JavaScript modules.
 - For production, set a strong `JWT_SECRET` and use a hosted `MONGODB_URI`.
