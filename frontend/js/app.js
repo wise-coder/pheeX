@@ -8,6 +8,7 @@ const state = {
   selectedAlbum: null,
   images: [],
   notifications: [],
+  communityUsers: [],
   pagination: {
     page: 1,
     hasMore: false
@@ -31,6 +32,7 @@ const elements = {
   uploadForm: document.querySelector("#uploadForm"),
   albumList: document.querySelector("#albumList"),
   albumSearch: document.querySelector("#albumSearch"),
+  communityList: document.querySelector("#communityList"),
   statsRow: document.querySelector("#statsRow"),
   selectedAlbum: document.querySelector("#selectedAlbum"),
   albumGallery: document.querySelector("#albumGallery"),
@@ -228,6 +230,7 @@ const clearSession = async () => {
   state.selectedAlbum = null;
   state.images = [];
   state.notifications = [];
+  state.communityUsers = [];
   state.pagination = { page: 1, hasMore: false };
   state.activeImageId = null;
   api.clearStoredAuth();
@@ -393,6 +396,32 @@ const renderStats = () => {
   `;
 
   applyMotionEnhancements(elements.statsRow);
+};
+
+const renderCommunityUsers = () => {
+  if (!elements.communityList) {
+    return;
+  }
+
+  if (!state.communityUsers.length) {
+    elements.communityList.innerHTML = `<div class="helper-text">No other profiles are using this access code yet.</div>`;
+    return;
+  }
+
+  elements.communityList.innerHTML = state.communityUsers
+    .map((user) => {
+      const safeName = escapeHtml(user.username || "User");
+
+      return `
+        <article class="community-member-card" title="${safeName}">
+          ${renderAvatar(user, "presence-avatar")}
+          <span class="community-member-name">${safeName}</span>
+        </article>
+      `;
+    })
+    .join("");
+
+  applyMotionEnhancements(elements.communityList);
 };
 
 const renderAlbums = () => {
