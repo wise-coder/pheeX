@@ -88,7 +88,7 @@ Root Directory: leave blank
 Set these environment variables in Render:
 
 ```text
-MONGODB_URI=mongodb+srv://YOUR_DB_USER:YOUR_DB_PASSWORD@YOUR-CLUSTER.mongodb.net/pheex?retryWrites=true&w=majority
+MONGODB_URI=mongodb+srv://YOUR_DB_USER:YOUR_URL_ENCODED_PASSWORD@YOUR-CLUSTER.mongodb.net/pheex?retryWrites=true&w=majority&appName=Cluster0
 JWT_SECRET=your-long-random-secret
 JWT_EXPIRES_IN=7d
 NODE_ENV=production
@@ -97,6 +97,8 @@ NODE_ENV=production
 Important:
 
 - Do not use `mongodb://127.0.0.1:27017/pheex` on Render.
+- URL-encode special characters in your MongoDB password before pasting it into `MONGODB_URI`. Example: `@` becomes `%40`.
+- In MongoDB Atlas, allow your Render service in `Network Access`, or temporarily allow `0.0.0.0/0` while testing.
 - Uploads are stored in `backend/src/uploads/`.
 - On Render, server disk is not durable across redeploys or restarts, so uploaded files can be lost.
 
