@@ -75,6 +75,36 @@ The backend serves the frontend automatically, so once the server is running you
 http://localhost:5000
 ```
 
+## Render Deployment
+
+This app still requires both MongoDB and Supabase Storage in production.
+
+Use these Render settings:
+
+```text
+Build Command: cd backend && npm ci
+Start Command: cd backend && npm start
+Root Directory: leave blank
+```
+
+Set these environment variables in Render:
+
+```text
+MONGODB_URI=mongodb+srv://YOUR_DB_USER:YOUR_DB_PASSWORD@YOUR-CLUSTER.mongodb.net/pheex?retryWrites=true&w=majority
+JWT_SECRET=your-long-random-secret
+JWT_EXPIRES_IN=7d
+SUPABASE_URL=https://YOUR_PROJECT_ID.supabase.co
+SUPABASE_STORAGE_BUCKET=pheex-media
+SUPABASE_SERVICE_ROLE_KEY=YOUR_SUPABASE_SERVICE_ROLE_KEY
+NODE_ENV=production
+```
+
+Important:
+
+- Do not use `mongodb://127.0.0.1:27017/pheex` on Render.
+- If `SUPABASE_*` variables are missing, uploads fall back to local disk.
+- Render local disk is not the right place for permanent user uploads.
+
 ## API Areas
 
 - `POST /api/auth/register`
