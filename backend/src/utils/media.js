@@ -2,10 +2,26 @@ const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
 const mongoose = require("mongoose");
+const sharp = require("sharp");
 
 const Media = require("../models/Media");
 
 const legacyUploadsDirectory = path.resolve(__dirname, "../uploads");
+const MEDIA_TRANSFORMS = {
+  profiles: {
+    width: 512,
+    height: 512,
+    fit: "cover",
+    quality: 78
+  },
+  images: {
+    width: 1600,
+    height: 1600,
+    fit: "inside",
+    quality: 80
+  }
+};
+const BYPASS_OPTIMIZATION_MIME_TYPES = new Set(["image/gif", "image/svg+xml"]);
 
 const sanitizeBaseName = (fileName = "image") =>
   path
@@ -37,18 +53,65 @@ const getExtension = (file) => {
   return ".jpg";
 };
 
-const buildFileName = (file) =>
-  `${Date.now()}-${crypto.randomUUID()}-${sanitizeBaseName(file?.originalname)}${getExtension(file)}`;
+const buildFileName = (file, extension = getExtension(file)) =>
+  `${Date.now()}-${crypto.randomUUID()}-${sanitizeBaseName(file?.originalname)}${extension}`;
 
 const buildMediaUrl = (mediaId) => `/api/media/${mediaId}`;
 
+const optimizeUploadedImage = async (file, folder) => {
+  if (!file?.buffer || BYPASS_OPTIMIZATION_MIME_TYPES.has(file.mimetype)) {
+    return {
+      ...file,
+      size: file?.size || file?.buffer?.length || 0
+    };
+  }
+
+  const transform = MEDIA_TRANSFORMS[folder] || MEDIA_TRANSFORMS.images;
+
+  try {
+    let pipeline = sharp(file.buffer, { failOn: "none" }).rotate().resize({
+      width: transform.width,
+      height: transform.height,
+      fit: transform.fit,
+      withoutEnlargement: true
+    });
+
+    if (folder === "profiles") {
+      pipeline = pipeline.flatten({ background: "#111114" });
+    }
+
+    const buffer = await pipeline.webp({
+      quality: transform.quality,
+      effort: 4
+    }).toBuffer();
+
+    return {
+      ...file,
+      buffer,
+      mimetype: "image/webp",
+      size: buffer.length
+    };
+  } catch (error) {
+    console.warn(`Image optimization skipped for "${file.originalname}": ${error.message}`);
+    return {
+      ...file,
+      size: file.size || file.buffer.length
+    };
+  }
+};
+
 const uploadToMongo = async (file, folder) => {
+  const processedFile = await optimizeUploadedImage(file, folder);
+
   const media = await Media.create({
     kind: folder,
-    fileName: `${folder}-${buildFileName(file)}`,
-    mimeType: file.mimetype || "image/jpeg",
-    size: file.size || file.buffer.length,
-    data: file.buffer
+    fileName: `${folder}-${buildFileName(
+      processedFile,
+      processedFile.mimetype === "image/webp" ? ".webp" : getExtension(processedFile)
+    )}`,
+    mimeType: processedFile.mimetype || "image/jpeg",
+    size: processedFile.size || processedFile.buffer.length,
+    data: processedFile.buffer
   });
 
   return {

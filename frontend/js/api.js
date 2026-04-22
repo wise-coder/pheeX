@@ -63,6 +63,7 @@ const api = {
   logout: () => request("/auth/logout", { method: "POST" }),
   getMe: () => request("/auth/me"),
   getCommunityUsers: () => request("/auth/community"),
+  getChatMessages: (limit = 60) => request(`/chat/messages?${new URLSearchParams({ limit: String(limit) }).toString()}`),
   updateProfile: (formData) => request("/auth/profile", { method: "PUT", body: formData }),
   getAlbums: (params = {}) => {
     const query = new URLSearchParams(params).toString();

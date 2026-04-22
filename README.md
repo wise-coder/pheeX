@@ -38,6 +38,7 @@ pheex/
 - Album search
 - Infinite scroll image loading
 - Notifications for reactions, comments, and shared album contributions
+- Real-time access-code group chat with recent-message retention
 
 ## Setup
 
@@ -119,10 +120,12 @@ Important:
 - `GET /api/notifications`
 - `PUT /api/notifications/read-all`
 - `GET /api/media/:mediaId`
+- `GET /api/chat/messages`
 
 ## Notes
 
 - App data and metadata live in MongoDB.
 - Uploaded images and profile photos are stored in MongoDB.
+- Group chat keeps short text messages only and retains recent history per access code to reduce storage growth.
 - The frontend is framework-free and rendered dynamically with vanilla JavaScript modules.
 - For production, set a strong `JWT_SECRET` and use a hosted `MONGODB_URI`.

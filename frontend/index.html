@@ -253,6 +253,30 @@
                     <button class="btn btn-danger-accent mt-3 w-100" type="submit">Upload Image</button>
                   </form>
                 </section>
+
+                <section class="panel-card chat-panel">
+                  <div class="panel-heading">
+                    <div>
+                      <span class="eyebrow">Live Chat</span>
+                      <h2>Access Code Room</h2>
+                    </div>
+                    <span class="meta-badge" id="chatStatus">Offline</span>
+                  </div>
+                  <p class="helper-text mb-3">Real-time text chat for everyone using this access code. Only recent short messages are kept.</p>
+                  <div id="chatMessages" class="list-stack compact-list chat-message-list"></div>
+                  <form id="chatForm" class="chat-form mt-3">
+                    <input
+                      class="form-control"
+                      id="chatInput"
+                      name="text"
+                      type="text"
+                      maxlength="280"
+                      placeholder="Send a message to your shared group"
+                      required
+                    />
+                    <button class="btn btn-outline-gold w-100" type="submit">Send Message</button>
+                  </form>
+                </section>
               </div>
             </div>
 
@@ -390,6 +414,7 @@
       integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
       crossorigin="anonymous"
     ></script>
+    <script src="/socket.io/socket.io.js"></script>
     <script type="module" src="./js/app.js"></script>
   </body>
 </html>

@@ -1059,6 +1059,59 @@ img {
   padding-bottom: 1rem;
 }
 
+.chat-panel .meta-badge {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+.chat-panel .meta-badge.is-live {
+  background: rgba(47, 209, 90, 0.12);
+  color: #8cf3ab;
+  border-color: rgba(47, 209, 90, 0.24);
+}
+
+.chat-message-list {
+  max-height: 360px;
+}
+
+.chat-empty-state {
+  padding: 1.2rem 1rem;
+}
+
+.chat-message {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.75rem;
+  align-items: start;
+  padding: 0.8rem;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.chat-message.is-self {
+  background: rgba(199, 165, 58, 0.08);
+  border-color: rgba(199, 165, 58, 0.18);
+}
+
+.chat-message-card {
+  min-width: 0;
+}
+
+.chat-message-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.2rem;
+}
+
+.chat-message-text {
+  margin: 0;
+  color: var(--pheex-text);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
 .sentinel {
   padding-top: 1rem;
   text-align: center;

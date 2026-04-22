@@ -9,6 +9,9 @@ const state = {
   images: [],
   notifications: [],
   communityUsers: [],
+  chatMessages: [],
+  chatConnected: false,
+  chatSocket: null,
   pagination: {
     page: 1,
     hasMore: false
@@ -33,6 +36,10 @@ const elements = {
   albumList: document.querySelector("#albumList"),
   albumSearch: document.querySelector("#albumSearch"),
   communityList: document.querySelector("#communityList"),
+  chatMessages: document.querySelector("#chatMessages"),
+  chatForm: document.querySelector("#chatForm"),
+  chatInput: document.querySelector("#chatInput"),
+  chatStatus: document.querySelector("#chatStatus"),
   statsRow: document.querySelector("#statsRow"),
   selectedAlbum: document.querySelector("#selectedAlbum"),
   albumGallery: document.querySelector("#albumGallery"),
@@ -186,6 +193,77 @@ const updateStoredSession = (payload) => {
   api.setStoredAuth(state.auth);
 };
 
+const renderChatStatus = () => {
+  if (!elements.chatStatus) {
+    return;
+  }
+
+  elements.chatStatus.textContent = state.chatConnected ? "Live" : "Offline";
+  elements.chatStatus.classList.toggle("is-live", state.chatConnected);
+};
+
+const disconnectChatSocket = () => {
+  if (state.chatSocket) {
+    state.chatSocket.removeAllListeners();
+    state.chatSocket.disconnect();
+    state.chatSocket = null;
+  }
+
+  state.chatConnected = false;
+  renderChatStatus();
+};
+
+const appendChatMessage = (message) => {
+  if (!message?._id || state.chatMessages.some((item) => item._id === message._id)) {
+    return;
+  }
+
+  state.chatMessages = [...state.chatMessages, message].slice(-80);
+  renderChatMessages();
+};
+
+const ensureChatSocket = () => {
+  if (state.chatSocket || !state.auth?.token || !state.user?.accessCode || typeof window.io !== "function") {
+    renderChatStatus();
+    return;
+  }
+
+  const socket = window.io({
+    auth: {
+      token: state.auth.token
+    },
+    transports: ["websocket", "polling"]
+  });
+
+  state.chatSocket = socket;
+  renderChatStatus();
+
+  socket.on("connect", () => {
+    state.chatConnected = true;
+    renderChatStatus();
+  });
+
+  socket.on("disconnect", () => {
+    state.chatConnected = false;
+    renderChatStatus();
+  });
+
+  socket.on("connect_error", () => {
+    state.chatConnected = false;
+    renderChatStatus();
+  });
+
+  socket.on("chat:message", (message) => {
+    appendChatMessage(message);
+  });
+
+  socket.on("chat:error", (payload = {}) => {
+    if (payload.message) {
+      showAlert(payload.message, "danger");
+    }
+  });
+};
+
 const closePanels = () => {
   [elements.profileDrawer, elements.notificationDrawer].forEach((panel) => {
     panel?.classList.remove("is-open");
@@ -231,6 +309,8 @@ const clearSession = async () => {
   state.images = [];
   state.notifications = [];
   state.communityUsers = [];
+  state.chatMessages = [];
+  disconnectChatSocket();
   state.pagination = { page: 1, hasMore: false };
   state.activeImageId = null;
   api.clearStoredAuth();
@@ -334,6 +414,8 @@ const renderShell = () => {
   if (authenticated) {
     renderProfile();
     renderStats();
+    renderChatStatus();
+    renderChatMessages();
     renderAlbums();
     renderSelectedAlbum();
     renderAlbumGallery();
@@ -345,6 +427,7 @@ const renderShell = () => {
     elements.selectedAlbum.innerHTML = "";
     elements.albumGallery.innerHTML = "";
     elements.notificationList.innerHTML = "";
+    elements.chatMessages.innerHTML = "";
     elements.imageModalContent.innerHTML = "";
     applyMotionEnhancements(elements.authView);
   }
@@ -422,6 +505,44 @@ const renderCommunityUsers = () => {
     .join("");
 
   applyMotionEnhancements(elements.communityList);
+};
+
+const renderChatMessages = () => {
+  if (!elements.chatMessages) {
+    return;
+  }
+
+  if (!state.chatMessages.length) {
+    elements.chatMessages.innerHTML = `
+      <div class="empty-state chat-empty-state">
+        No chat messages yet. Say hello to everyone sharing this access code.
+      </div>
+    `;
+    return;
+  }
+
+  elements.chatMessages.innerHTML = state.chatMessages
+    .map((message) => {
+      const isSelf = message.sender?._id && state.user?._id && message.sender._id === state.user._id;
+
+      return `
+        <article class="chat-message ${isSelf ? "is-self" : ""}">
+          ${renderAvatar(message.sender, "comment-avatar")}
+          <div class="chat-message-card">
+            <div class="chat-message-head">
+              <strong>${escapeHtml(message.sender?.username || "User")}</strong>
+              <span class="helper-text">${escapeHtml(formatDate(message.createdAt))}</span>
+            </div>
+            <p class="chat-message-text">${escapeHtml(message.text || "")}</p>
+          </div>
+        </article>
+      `;
+    })
+    .join("");
+
+  window.requestAnimationFrame(() => {
+    elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
+  });
 };
 
 const renderAlbums = () => {
@@ -623,6 +744,12 @@ const loadCommunityUsers = async () => {
   renderCommunityUsers();
 };
 
+const loadChatMessages = async () => {
+  const { messages } = await api.getChatMessages();
+  state.chatMessages = messages;
+  renderChatMessages();
+};
+
 const loadAlbums = async ({ preserveSelection = true } = {}) => {
   const { albums } = await api.getAlbums({
     search: state.search,
@@ -705,7 +832,7 @@ const loadMoreImages = async () => {
 const refreshDashboard = async ({ preserveSelection = true } = {}) => {
   await syncUserFromServer();
   renderProfile();
-  await Promise.all([loadAlbums({ preserveSelection }), loadNotifications(), loadCommunityUsers()]);
+  await Promise.all([loadAlbums({ preserveSelection }), loadNotifications(), loadCommunityUsers(), loadChatMessages()]);
 
   if (state.selectedAlbum?._id) {
     await loadSelectedAlbum(state.selectedAlbum._id);
@@ -715,6 +842,7 @@ const refreshDashboard = async ({ preserveSelection = true } = {}) => {
   }
 
   renderShell();
+  ensureChatSocket();
 };
 
 const handleAuthSuccess = async (payload, message) => {
@@ -1045,6 +1173,28 @@ const bindEvents = () => {
     } finally {
       setLoadingState(elements.uploadForm, false);
     }
+  });
+
+  elements.chatForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const text = elements.chatInput.value.trim().slice(0, 280);
+
+    if (!text) {
+      return;
+    }
+
+    if (!state.chatSocket) {
+      ensureChatSocket();
+    }
+
+    if (!state.chatSocket?.connected) {
+      showAlert("Chat is reconnecting. Try again in a moment.", "danger");
+      return;
+    }
+
+    state.chatSocket.emit("chat:send", { text });
+    elements.chatInput.value = "";
   });
 
   elements.albumList.addEventListener("click", async (event) => {
