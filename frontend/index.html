@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pheeX | Collaborative Photo Sharing</title>
+    <meta
+      name="description"
+      content="pheeX is a collaborative photo-sharing platform where albums grow through community uploads, reactions, and comments."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Orbitron:wght@500;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
+    <link rel="stylesheet" href="./css/style.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="topbar">
+        <div class="container py-3">
+          <div class="topbar-inner">
+            <div>
+              <a href="#" class="brand-mark">pheeX</a>
+              <p class="brand-subtitle mb-0">Albums that grow through community</p>
+            </div>
+            <div class="topbar-actions" id="topbarActions">
+              <button class="btn btn-outline-gold btn-sm d-none" id="notificationButton" type="button">
+                Alerts
+                <span class="badge-count" id="notificationCount">0</span>
+              </button>
+              <button class="btn btn-ghost btn-sm d-none" id="profileSettingsButton" type="button">
+                Settings
+              </button>
+              <button class="btn btn-outline-danger btn-sm d-none" id="logoutButton" type="button">Log Out</button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main class="container pb-5">
+        <div id="statusHost" class="mb-3"></div>
+
+        <section class="hero-section" id="authView">
+          <div class="hero-stage">
+            <div class="hero-card hero-card-landing">
+              <div class="hero-copy-panel">
+                <span class="eyebrow">Collaborative Photo Marketplace</span>
+                <p class="hero-tag">Built for creators, teams, and shared memories</p>
+                <h1>
+                  CREATE
+                  <span>ALBUMS</span>
+                  TOGETHER
+                </h1>
+                <p class="hero-copy">
+                  pheeX turns every album into a shared space. Launch a collection, let other users add images,
+                  and keep every moment alive with reactions and comments.
+                </p>
+                <div class="hero-actions">
+                  <button class="btn btn-danger-accent hero-trigger" data-auth-tab-target="register" type="button">
+                    Start Sharing
+                  </button>
+                  <button class="btn btn-ghost hero-trigger" data-auth-tab-target="login" type="button">
+                    Explore Access
+                  </button>
+                </div>
+                <div class="hero-metric-row">
+                  <div class="metric-glass-card">
+                    <span class="metric-label">Shared Albums</span>
+                    <strong>5000+</strong>
+                  </div>
+                  <div class="metric-glass-card">
+                    <span class="metric-label">Live Reactions</span>
+                    <strong>24/7</strong>
+                  </div>
+                  <div class="metric-glass-card">
+                    <span class="metric-label">Comment Threads</span>
+                    <strong>Always On</strong>
+                  </div>
+                </div>
+              </div>
+
+              <div class="hero-visual-panel">
+                <div class="visual-chip chip-top-right">Secure Access</div>
+                <div class="visual-chip chip-mid-left">Open Contributions</div>
+                <div class="visual-chip chip-bottom-right">Realtime Reactions</div>
+                <div class="visual-chip chip-bottom-left">Creator Threads</div>
+
+                <div class="hero-figure-stage" aria-hidden="true">
+                  <img
+                    class="hero-pinterest-image"
+                    src="./assets/hero-pinterest.jpg"
+                    alt="Cyberpunk portrait"
+                  />
+                  <div class="hero-image-glow"></div>
+                  <div class="figure-aura"></div>
+                  <div class="figure-visor"></div>
+                  <div class="figure-thread thread-one"></div>
+                  <div class="figure-thread thread-two"></div>
+                  <div class="scan-lines"></div>
+                </div>
+
+                <div class="visual-stats-bar">
+                  <div class="visual-stat">
+                    <strong>12</strong>
+                    <span>Albums</span>
+                  </div>
+                  <div class="visual-stat">
+                    <strong>03</strong>
+                    <span>Feeds</span>
+                  </div>
+                  <div class="visual-stat">
+                    <strong>11</strong>
+                    <span>Comments</span>
+                  </div>
+                  <div class="visual-stat">
+                    <strong>43</strong>
+                    <span>Reacts</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="panel-card auth-card auth-card-landing">
+              <div class="tab-switch" id="authTabs">
+                <button class="tab-switch-btn active" data-auth-tab="login" type="button">Login</button>
+                <button class="tab-switch-btn" data-auth-tab="register" type="button">Register</button>
+              </div>
+              <form id="loginForm" class="auth-form">
+                <h2>Welcome Back</h2>
+                <p class="panel-copy">Sign in to contribute to albums, react to moments, and keep the feed moving.</p>
+                <div class="mb-3">
+                  <label class="form-label" for="loginEmail">Email</label>
+                  <input class="form-control" id="loginEmail" name="email" type="email" required />
+                </div>
+                <div class="mb-3">
+                  <label class="form-label" for="loginPassword">Password</label>
+                  <input class="form-control" id="loginPassword" name="password" type="password" required />
+                </div>
+                <button class="btn btn-danger-accent w-100" type="submit">Log In</button>
+              </form>
+
+              <form id="registerForm" class="auth-form d-none" enctype="multipart/form-data">
+                <h2>Create Access</h2>
+                <p class="panel-copy">Join pheeX and open albums that other creators can build with you.</p>
+                <div class="mb-3">
+                  <label class="form-label" for="registerUsername">Username</label>
+                  <input class="form-control" id="registerUsername" name="username" type="text" minlength="3" maxlength="24" required />
+                </div>
+                <div class="mb-3">
+                  <label class="form-label" for="registerEmail">Email</label>
+                  <input class="form-control" id="registerEmail" name="email" type="email" required />
+                </div>
+                <div class="mb-3">
+                  <label class="form-label" for="registerPassword">Password</label>
+                  <input class="form-control" id="registerPassword" name="password" type="password" minlength="6" required />
+                </div>
+                <div class="mb-3">
+                  <label class="form-label" for="registerAccessCode">5-Digit Access Code</label>
+                  <input
+                    class="form-control"
+                    id="registerAccessCode"
+                    name="accessCode"
+                    type="text"
+                    inputmode="numeric"
+                    pattern="\d{5}"
+                    maxlength="5"
+                    placeholder="12345"
+                    required
+                  />
+                </div>
+                <div class="mb-4">
+                  <label class="form-label" for="registerProfileImage">Profile Picture</label>
+                  <input class="form-control" id="registerProfileImage" name="profileImage" type="file" accept="image/*" />
+                </div>
+                <button class="btn btn-outline-gold w-100" type="submit">Create Account</button>
+              </form>
+            </div>
+          </div>
+        </section>
+
+        <section class="app-view d-none" id="appView">
+          <div class="row g-4">
+            <div class="col-lg-4 col-xl-4 order-1 order-lg-2">
+              <div class="panel-stack">
+                <section class="panel-card account-panel" id="profilePanel">
+                  <div class="panel-heading">
+                    <div>
+                      <span class="eyebrow">Account</span>
+                      <h2>Your Space</h2>
+                    </div>
+                    <button class="btn btn-outline-gold btn-sm" id="openProfileSettings" type="button">Edit</button>
+                  </div>
+                  <div id="profileSummary"></div>
+                  <div class="account-panel-actions">
+                    <button class="btn btn-ghost w-100" id="openNotifications" type="button">View Notifications</button>
+                  </div>
+                </section>
+
+                <section class="panel-card">
+                  <div class="panel-heading">
+                    <div>
+                      <span class="eyebrow">Create</span>
+                      <h2>New Album</h2>
+                    </div>
+                  </div>
+                  <form id="createAlbumForm">
+                    <div class="mb-3">
+                      <label class="form-label" for="albumTitle">Album Title</label>
+                      <input class="form-control" id="albumTitle" name="title" type="text" minlength="2" maxlength="80" required />
+                    </div>
+                    <div class="mb-4">
+                      <label class="form-label" for="albumDescription">Description</label>
+                      <textarea class="form-control" id="albumDescription" name="description" rows="3" maxlength="240"></textarea>
+                    </div>
+                    <button class="btn btn-gold w-100" type="submit">Create Album</button>
+                  </form>
+                </section>
+
+                <section class="panel-card">
+                  <div class="panel-heading">
+                    <div>
+                      <span class="eyebrow">Upload</span>
+                      <h2>Add To Album</h2>
+                    </div>
+                  </div>
+                  <form id="uploadForm" class="upload-form" enctype="multipart/form-data">
+                    <div class="row g-3">
+                      <div class="col-12">
+                        <label class="form-label" for="uploadAlbumId">Upload To</label>
+                        <select class="form-select" id="uploadAlbumId" name="albumId" required></select>
+                      </div>
+                      <div class="col-12">
+                        <label class="form-label" for="uploadCaption">Caption</label>
+                        <input class="form-control" id="uploadCaption" name="caption" type="text" maxlength="180" />
+                      </div>
+                      <div class="col-12">
+                        <label class="form-label" for="uploadImage">Image</label>
+                        <input class="form-control" id="uploadImage" name="image" type="file" accept="image/*" required />
+                      </div>
+                    </div>
+                    <button class="btn btn-danger-accent mt-3 w-100" type="submit">Upload Image</button>
+                  </form>
+                </section>
+              </div>
+            </div>
+
+            <div class="col-lg-8 col-xl-8 order-2 order-lg-1">
+              <div class="panel-stack">
+                <section class="panel-card dashboard-intro-panel">
+                  <div class="panel-heading">
+                    <div>
+                      <span class="eyebrow">Dashboard</span>
+                      <h2>Creator Control</h2>
+                    </div>
+                  </div>
+                  <div class="dashboard-intro-grid">
+                    <div>
+                      <p class="panel-copy mb-0">
+                        Manage albums, jump into shared image threads, and open any album image for a closer view with reactions and comments.
+                      </p>
+                    </div>
+                    <div class="stats-row" id="statsRow"></div>
+                  </div>
+                </section>
+
+                <section class="panel-card">
+                  <div class="panel-heading">
+                    <div>
+                      <span class="eyebrow">Discover</span>
+                      <h2>Albums</h2>
+                    </div>
+                    <div class="panel-heading-actions">
+                      <input
+                        class="form-control search-input"
+                        id="albumSearch"
+                        type="search"
+                        placeholder="Search albums"
+                        aria-label="Search albums"
+                      />
+                    </div>
+                  </div>
+                  <div id="albumList" class="album-grid compact-album-grid"></div>
+                </section>
+
+                <section class="panel-card" id="selectedAlbumPanel">
+                  <div id="selectedAlbum"></div>
+                  <div class="album-gallery-shell mt-4">
+                    <div class="panel-heading mb-3">
+                      <div>
+                        <span class="eyebrow">Album View</span>
+                        <h2>Open An Image</h2>
+                      </div>
+                    </div>
+                    <div id="albumGallery" class="album-gallery-grid"></div>
+                  </div>
+                </section>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div class="panel-backdrop d-none" id="panelBackdrop"></div>
+
+    <aside class="side-panel" id="profileDrawer">
+      <div class="side-panel-header">
+        <div>
+          <span class="eyebrow">Settings</span>
+          <h2>Profile Settings</h2>
+        </div>
+        <button class="btn btn-outline-danger btn-sm" data-close-panel="profileDrawer" type="button">Close</button>
+      </div>
+      <form id="profileForm" class="side-panel-form" enctype="multipart/form-data">
+        <div class="mb-3">
+          <label class="form-label" for="profileUsername">Username</label>
+          <input class="form-control" id="profileUsername" name="username" type="text" minlength="3" maxlength="24" />
+        </div>
+        <div class="mb-3">
+          <label class="form-label" for="profileEmail">Email</label>
+          <input class="form-control" id="profileEmail" name="email" type="email" />
+        </div>
+        <div class="mb-3">
+          <label class="form-label" for="profileAccessCode">5-Digit Access Code</label>
+          <input class="form-control" id="profileAccessCode" name="accessCode" type="text" readonly />
+        </div>
+        <div class="mb-3">
+          <label class="form-label" for="currentPassword">Current Password</label>
+          <input class="form-control" id="currentPassword" name="currentPassword" type="password" />
+        </div>
+        <div class="mb-3">
+          <label class="form-label" for="newPassword">New Password</label>
+          <input class="form-control" id="newPassword" name="newPassword" type="password" minlength="6" />
+        </div>
+        <div class="mb-4">
+          <label class="form-label" for="profileImage">Profile Picture</label>
+          <input class="form-control" id="profileImage" name="profileImage" type="file" accept="image/*" />
+        </div>
+        <button class="btn btn-outline-successful w-100" type="submit">Update Profile</button>
+      </form>
+    </aside>
+
+    <aside class="side-panel" id="notificationDrawer">
+      <div class="side-panel-header">
+        <div>
+          <span class="eyebrow">Alerts</span>
+          <h2>Notifications</h2>
+        </div>
+        <div class="d-flex gap-2">
+          <button class="btn btn-outline-gold btn-sm" id="markNotificationsRead" type="button">Mark All Read</button>
+          <button class="btn btn-outline-danger btn-sm" data-close-panel="notificationDrawer" type="button">Close</button>
+        </div>
+      </div>
+      <div id="notificationList" class="list-stack compact-list"></div>
+    </aside>
+
+    <div class="image-modal-shell d-none" id="imageModal">
+      <div class="image-modal-backdrop" data-close-modal="imageModal"></div>
+      <div class="image-modal-card">
+        <button class="btn btn-outline-danger btn-sm image-modal-close" data-close-modal="imageModal" type="button">
+          Close
+        </button>
+        <div id="imageModalContent"></div>
+      </div>
+    </div>
+
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+      crossorigin="anonymous"
+    ></script>
+    <script type="module" src="./js/app.js"></script>
+  </body>
+</html>
