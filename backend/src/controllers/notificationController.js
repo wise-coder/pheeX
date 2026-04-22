@@ -1,15 +1,26 @@
 const Notification = require("../models/Notification");
+const { serializePublicUser } = require("../utils/presence");
 
 const getNotifications = async (req, res) => {
   const notifications = await Notification.find({ recipient: req.user._id })
-    .populate("actor", "username profileImage")
+    .populate("actor", "username profileImage lastSeenAt")
     .populate("album", "title")
     .populate("image", "url")
     .sort({ createdAt: -1 })
     .limit(20);
 
   return res.json({
-    notifications
+    notifications: notifications.map((notification) => ({
+      _id: notification._id,
+      actor: serializePublicUser(notification.actor),
+      album: notification.album,
+      image: notification.image,
+      type: notification.type,
+      message: notification.message,
+      read: notification.read,
+      createdAt: notification.createdAt,
+      updatedAt: notification.updatedAt
+    }))
   });
 };
 

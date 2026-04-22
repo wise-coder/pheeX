@@ -6,14 +6,15 @@ const Notification = require("../models/Notification");
 const getPagination = require("../utils/pagination");
 const { ensureAlbumAccess } = require("../utils/access");
 const { deleteStoredFile } = require("../utils/media");
+const { serializePublicUser } = require("../utils/presence");
 
 const formatAlbum = (album) => ({
   _id: album._id,
   title: album.title,
   description: album.description,
   coverImage: album.coverImage,
-  creator: album.creator,
-  contributors: album.contributors,
+  creator: serializePublicUser(album.creator),
+  contributors: album.contributors.map(serializePublicUser),
   imageCount: album.images.length,
   contributorCount: album.contributors.length,
   createdAt: album.createdAt,
@@ -30,8 +31,8 @@ const createAlbum = async (req, res) => {
     accessCode: req.user.accessCode
   });
 
-  await album.populate("creator", "username profileImage");
-  await album.populate("contributors", "username profileImage");
+  await album.populate("creator", "username profileImage lastSeenAt");
+  await album.populate("contributors", "username profileImage lastSeenAt");
 
   return res.status(201).json({ album: formatAlbum(album) });
 };
@@ -51,8 +52,8 @@ const getAlbums = async (req, res) => {
 
   const [albums, total] = await Promise.all([
     Album.find(query)
-      .populate("creator", "username profileImage")
-      .populate("contributors", "username profileImage")
+      .populate("creator", "username profileImage lastSeenAt")
+      .populate("contributors", "username profileImage lastSeenAt")
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit),
@@ -72,8 +73,8 @@ const getAlbums = async (req, res) => {
 
 const getAlbumById = async (req, res) => {
   const album = await Album.findById(req.params.albumId)
-    .populate("creator", "username profileImage")
-    .populate("contributors", "username profileImage");
+    .populate("creator", "username profileImage lastSeenAt")
+    .populate("contributors", "username profileImage lastSeenAt");
 
   if (!album) {
     return res.status(404).json({ message: "Album not found." });

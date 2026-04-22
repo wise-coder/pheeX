@@ -62,6 +62,7 @@ const api = {
   login: (credentials) => request("/auth/login", { method: "POST", body: credentials }),
   logout: () => request("/auth/logout", { method: "POST" }),
   getMe: () => request("/auth/me"),
+  getCommunityUsers: () => request("/auth/community"),
   updateProfile: (formData) => request("/auth/profile", { method: "PUT", body: formData }),
   getAlbums: (params = {}) => {
     const query = new URLSearchParams(params).toString();

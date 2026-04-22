@@ -8,6 +8,7 @@ const {
   register,
   login,
   getCurrentUser,
+  getAccessCodeUsers,
   updateProfile,
   logout
 } = require("../controllers/authController");
@@ -38,6 +39,7 @@ router.post(
 );
 
 router.get("/me", protect, getCurrentUser);
+router.get("/community", protect, getAccessCodeUsers);
 
 router.put(
   "/profile",

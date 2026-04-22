@@ -93,20 +93,28 @@ const formatDate = (value) =>
     minute: "2-digit"
   }).format(new Date(value));
 
-const renderAvatar = (user, sizeClass = "avatar") => {
+const renderAvatar = (user, sizeClass = "avatar", { isActive = user?.isActive === true } = {}) => {
+  const activeBadge = isActive ? `<span class="avatar-status-dot" aria-label="Active profile"></span>` : "";
+
   if (user?.profileImage) {
     return `
-      <div class="${sizeClass}">
-        <img src="${escapeHtml(user.profileImage)}" alt="${escapeHtml(user.username || "User")}" />
+      <div class="avatar-shell avatar-shell-${sizeClass} ${isActive ? "is-active" : ""}">
+        <div class="${sizeClass}">
+          <img src="${escapeHtml(user.profileImage)}" alt="${escapeHtml(user.username || "User")}" />
+        </div>
+        ${activeBadge}
       </div>
     `;
   }
 
   return `
-    <div class="${sizeClass}">
-      <div class="${sizeClass === "avatar" ? "avatar-fallback" : "comment-avatar-fallback"}">
-        ${escapeHtml(getInitials(user?.username || "PX"))}
+    <div class="avatar-shell avatar-shell-${sizeClass} ${isActive ? "is-active" : ""}">
+      <div class="${sizeClass}">
+        <div class="${sizeClass === "avatar" ? "avatar-fallback" : "comment-avatar-fallback"}">
+          ${escapeHtml(getInitials(user?.username || "PX"))}
+        </div>
       </div>
+      ${activeBadge}
     </div>
   `;
 };
@@ -346,7 +354,7 @@ const renderProfile = () => {
 
   elements.profileSummary.innerHTML = `
     <div class="profile-chip">
-      ${renderAvatar(state.user, "avatar")}
+      ${renderAvatar(state.user, "avatar", { isActive: true })}
       <div>
         <h3 class="photo-title mb-1">${escapeHtml(state.user.username)}</h3>
         <p class="small-copy mb-1">${escapeHtml(state.user.email)}</p>

@@ -7,6 +7,7 @@ const createNotification = require("../utils/notification");
 const getPagination = require("../utils/pagination");
 const { getAccessibleAlbum, getOwnedImage, ensureAlbumAccess } = require("../utils/access");
 const { saveUploadedFile, deleteStoredFile } = require("../utils/media");
+const { serializePublicUser } = require("../utils/presence");
 
 const sizes = ["small", "medium", "large"];
 
@@ -27,7 +28,7 @@ const buildImagePayloads = async (images, viewerId = null) => {
 
   const [comments, reactions] = await Promise.all([
     Comment.find({ imageId: { $in: imageIds } })
-      .populate("userId", "username profileImage")
+      .populate("userId", "username profileImage lastSeenAt")
       .sort({ createdAt: 1 })
       .lean(),
     Reaction.find({ imageId: { $in: imageIds } }).lean()
@@ -55,7 +56,7 @@ const buildImagePayloads = async (images, viewerId = null) => {
       url: image.url,
       caption: image.caption,
       albumId: image.albumId,
-      uploadedBy: image.uploadedBy,
+      uploadedBy: serializePublicUser(image.uploadedBy),
       likes: image.likes,
       commentsCount: image.commentsCount,
       displaySize: image.displaySize,
@@ -68,7 +69,7 @@ const buildImagePayloads = async (images, viewerId = null) => {
         text: comment.text,
         timestamp: comment.timestamp,
         createdAt: comment.createdAt,
-        user: comment.userId
+        user: serializePublicUser(comment.userId)
       }))
     };
   });
@@ -111,7 +112,7 @@ const createImage = async (req, res) => {
       imageId: image._id
     });
 
-    await image.populate("uploadedBy", "username profileImage");
+    await image.populate("uploadedBy", "username profileImage lastSeenAt");
 
     const [payload] = await buildImagePayloads([image], req.user._id);
 
@@ -137,7 +138,7 @@ const getImages = async (req, res) => {
 
   const [images, total] = await Promise.all([
     Image.find(query)
-      .populate("uploadedBy", "username profileImage")
+      .populate("uploadedBy", "username profileImage lastSeenAt")
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit),
@@ -158,7 +159,7 @@ const getImages = async (req, res) => {
 };
 
 const getImageById = async (req, res) => {
-  const image = await Image.findById(req.params.imageId).populate("uploadedBy", "username profileImage");
+  const image = await Image.findById(req.params.imageId).populate("uploadedBy", "username profileImage lastSeenAt");
 
   if (!image) {
     return res.status(404).json({ message: "Image not found." });

@@ -3,6 +3,7 @@ const Image = require("../models/Image");
 const createNotification = require("../utils/notification");
 const { ensureAlbumAccess } = require("../utils/access");
 const Album = require("../models/Album");
+const { serializePublicUser } = require("../utils/presence");
 
 const getCommentsForImage = async (req, res) => {
   const image = await Image.findById(req.params.imageId);
@@ -15,7 +16,7 @@ const getCommentsForImage = async (req, res) => {
   ensureAlbumAccess(album, req.user);
 
   const comments = await Comment.find({ imageId: image._id })
-    .populate("userId", "username profileImage")
+    .populate("userId", "username profileImage lastSeenAt")
     .sort({ createdAt: 1 });
 
   return res.json({
@@ -24,13 +25,13 @@ const getCommentsForImage = async (req, res) => {
       text: comment.text,
       timestamp: comment.timestamp,
       createdAt: comment.createdAt,
-      user: comment.userId
+      user: serializePublicUser(comment.userId)
     }))
   });
 };
 
 const addComment = async (req, res) => {
-  const image = await Image.findById(req.body.imageId).populate("uploadedBy", "username profileImage");
+  const image = await Image.findById(req.body.imageId).populate("uploadedBy", "username profileImage lastSeenAt");
 
   if (!image) {
     return res.status(404).json({ message: "Image not found." });
@@ -57,7 +58,7 @@ const addComment = async (req, res) => {
     imageId: image._id
   });
 
-  await comment.populate("userId", "username profileImage");
+  await comment.populate("userId", "username profileImage lastSeenAt");
 
   return res.status(201).json({
     comment: {
@@ -65,7 +66,7 @@ const addComment = async (req, res) => {
       text: comment.text,
       timestamp: comment.timestamp,
       createdAt: comment.createdAt,
-      user: comment.userId
+      user: serializePublicUser(comment.userId)
     },
     commentsCount: image.commentsCount
   });

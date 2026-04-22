@@ -2,6 +2,7 @@ const User = require("../models/User");
 const Notification = require("../models/Notification");
 const generateToken = require("../utils/token");
 const { saveUploadedFile, deleteStoredFile } = require("../utils/media");
+const { serializeAuthenticatedUser, serializePublicUser } = require("../utils/presence");
 
 const buildAuthResponse = async (user) => {
   const unreadNotifications = await Notification.countDocuments({
@@ -12,7 +13,7 @@ const buildAuthResponse = async (user) => {
   return {
     token: generateToken(user._id),
     user: {
-      ...user.toSafeObject(),
+      ...serializeAuthenticatedUser(user),
       unreadNotifications
     }
   };
@@ -32,6 +33,7 @@ const register = async (req, res) => {
     email: req.body.email.toLowerCase(),
     password: req.body.password,
     profileImage: "",
+    lastSeenAt: new Date(),
     accessCode: req.body.accessCode.trim()
   });
 
@@ -62,6 +64,9 @@ const login = async (req, res) => {
     return res.status(401).json({ message: "Invalid email or password." });
   }
 
+  user.lastSeenAt = new Date();
+  await user.save();
+
   return res.json(await buildAuthResponse(user));
 };
 
@@ -73,9 +78,20 @@ const getCurrentUser = async (req, res) => {
 
   return res.json({
     user: {
-      ...req.user.toSafeObject(),
+      ...serializeAuthenticatedUser(req.user),
       unreadNotifications
     }
+  });
+};
+
+const getAccessCodeUsers = async (req, res) => {
+  const users = await User.find({ accessCode: req.user.accessCode })
+    .select("username profileImage lastSeenAt")
+    .sort({ lastSeenAt: -1, username: 1 })
+    .lean();
+
+  return res.json({
+    users: users.map(serializePublicUser)
   });
 };
 
@@ -153,6 +169,7 @@ module.exports = {
   register,
   login,
   getCurrentUser,
+  getAccessCodeUsers,
   updateProfile,
   logout
 };

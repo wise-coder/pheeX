@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
+const { touchUserPresence } = require("../utils/presence");
 
 const getTokenFromHeader = (authorizationHeader = "") => {
   if (!authorizationHeader.startsWith("Bearer ")) {
@@ -19,6 +20,7 @@ const attachUser = async (req, token) => {
     throw error;
   }
 
+  await touchUserPresence(user);
   req.user = user;
 };
 

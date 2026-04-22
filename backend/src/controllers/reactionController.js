@@ -25,7 +25,7 @@ const getSummary = async (imageId, viewerId) => {
 
 const toggleReaction = async (req, res) => {
   const { imageId, type } = req.body;
-  const image = await Image.findById(imageId).populate("uploadedBy", "username profileImage");
+  const image = await Image.findById(imageId).populate("uploadedBy", "username profileImage lastSeenAt");
 
   if (!image) {
     return res.status(404).json({ message: "Image not found." });

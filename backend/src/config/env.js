@@ -18,16 +18,6 @@ const getStartupWarnings = () => {
     );
   }
 
-  if (
-    !process.env.SUPABASE_URL?.trim() ||
-    !process.env.SUPABASE_STORAGE_BUCKET?.trim() ||
-    !(process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() || process.env.SUPABASE_PUBLISHABLE_KEY?.trim())
-  ) {
-    warnings.push(
-      "Supabase Storage is not fully configured. Uploads will fall back to local disk unless SUPABASE_URL, SUPABASE_STORAGE_BUCKET, and a Supabase key are set."
-    );
-  }
-
   return warnings;
 };
 

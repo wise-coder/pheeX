@@ -27,6 +27,10 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: ""
     },
+    lastSeenAt: {
+      type: Date,
+      default: Date.now
+    },
     accessCode: {
       type: String,
       trim: true,
@@ -53,11 +57,18 @@ userSchema.methods.comparePassword = function comparePassword(candidatePassword)
 };
 
 userSchema.methods.toSafeObject = function toSafeObject() {
+  const isActive =
+    this.lastSeenAt instanceof Date
+      ? Date.now() - this.lastSeenAt.getTime() <= 10 * 60 * 1000
+      : Boolean(this.lastSeenAt && Date.now() - new Date(this.lastSeenAt).getTime() <= 10 * 60 * 1000);
+
   return {
     _id: this._id,
     username: this.username,
     email: this.email,
     profileImage: this.profileImage,
+    lastSeenAt: this.lastSeenAt || null,
+    isActive,
     accessCode: this.accessCode || "",
     createdAt: this.createdAt,
     updatedAt: this.updatedAt
